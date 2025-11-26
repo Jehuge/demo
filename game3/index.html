@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>石头剪刀布</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>石头剪刀布</h1>
+            <p class="subtitle">请将你的手势展示给相机！</p>
+        </header>
+
+        <div class="game-area">
+            <div class="video-container">
+                <video class="input_video"></video>
+                <canvas class="output_canvas"></canvas>
+                <div class="overlay" id="loading-overlay">
+                    <div class="loader"></div>
+                    <p>正在加载手部追踪...</p>
+                </div>
+            </div>
+
+            <div class="status-panel">
+                <div class="score-board">
+                    <div class="score-item">
+                        <span class="label">你</span>
+                        <span class="score" id="player-score">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="label">电脑</span>
+                        <span class="score" id="cpu-score">0</span>
+                    </div>
+                </div>
+
+                <div class="result-display">
+                    <div class="move-icon" id="player-move">?</div>
+                    <div class="vs">VS</div>
+                    <div class="move-icon" id="cpu-move">?</div>
+                </div>
+
+                <div class="message" id="game-message">准备好了吗？</div>
+                <button id="start-btn" class="primary-btn">开始游戏</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
