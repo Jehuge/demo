@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Gesture Puzzle</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Three.js (Global) -->
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
+    <!-- MediaPipe Hands (Global) -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div id="container"></div>
+    <div id="ui-layer">
+        <div id="instructions">
+            <h1>JARVIS Assembly</h1>
+            <p>Initialize System...</p>
+            <ul>
+                <li>🖐️ <strong>Move Hand</strong> to control cursor</li>
+                <li>👌 <strong>Pinch</strong> to grab parts from dock</li>
+                <li>🔄 <strong>Rotate Hand</strong> to orient parts</li>
+                <li>Assemble the vehicle chassis</li>
+            </ul>
+            <div id="loading">Loading Modules...</div>
+        </div>
+    </div>
+    <!-- Video element for background -->
+    <video id="input-video" playsinline></video>
+
+    <!-- Game Logic -->
+    <script src="script.js"></script>
+</body>
+
+</html>

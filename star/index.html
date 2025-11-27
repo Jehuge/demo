@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太阳系运行图</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="controls">
+        <h2>SOLAR SYSTEM</h2>
+        
+        <div class="mode-tabs">
+            <button class="tab-btn active" id="simModeBtn">模拟演演</button>
+            <button class="tab-btn" id="realModeBtn">真实位置</button>
+        </div>
+
+        <!-- 模拟模式面板 -->
+        <div id="simPanel" class="panel active">
+            <div class="control-group">
+                <label for="speedRange">公转速度: <span id="speedValue">1x</span></label>
+                <input type="range" id="speedRange" min="0" max="10" step="0.1" value="1">
+            </div>
+            <div class="control-group">
+                <label for="rotationSpeedRange">自转速度: <span id="rotationSpeedValue">1x</span></label>
+                <input type="range" id="rotationSpeedRange" min="0" max="10" step="0.1" value="1">
+            </div>
+        </div>
+
+        <!-- 真实模式面板 -->
+        <div id="realPanel" class="panel">
+            <div class="date-display">
+                <div id="currentDate" class="date-text">2023-11-27</div>
+            </div>
+            <div class="control-group">
+                <label for="timeScaleRange">时间流逝: <span id="timeScaleValue">1天/秒</span></label>
+                <input type="range" id="timeScaleRange" min="0.1" max="365" step="0.1" value="1">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="control-group">
+            <label for="sunIntensityRange">太阳亮度: <span id="sunIntensityValue">1.0</span></label>
+            <input type="range" id="sunIntensityRange" min="0.5" max="10" step="0.1" value="1.0">
+        </div>
+        <div class="control-group">
+            <label for="ambientIntensityRange">环境光: <span id="ambientIntensityValue">0.6</span></label>
+            <input type="range" id="ambientIntensityRange" min="0" max="2" step="0.1" value="0.6">
+        </div>
+        <div class="control-group">
+            <label for="planetSizeRange">星体大小: <span id="planetSizeValue">1x</span></label>
+            <input type="range" id="planetSizeRange" min="0.1" max="5" step="0.1" value="1">
+        </div>
+    </div>
+    
+    <!-- 使用旧版 Three.js 以支持 file:// 协议直接打开 (非 Module 模式) -->
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script src="script.js"></script>
+</body>
+</html>

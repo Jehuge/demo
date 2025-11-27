@@ -1,0 +1,109 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #000;
+    color: white;
+    font-family: sans-serif;
+}
+
+#controls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    width: 240px;
+    background: rgba(10, 10, 25, 0.75);
+    padding: 20px;
+    border-radius: 12px;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+h2 {
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(100, 150, 255, 0.5);
+}
+
+.mode-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 2px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #888;
+    padding: 8px 0;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.tab-btn.active {
+    background: #4455ff;
+    color: white;
+    box-shadow: 0 2px 8px rgba(68, 85, 255, 0.4);
+}
+
+.panel {
+    display: none;
+}
+
+.panel.active {
+    display: block;
+}
+
+.control-group {
+    margin-bottom: 15px;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+#controls label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #ccc;
+    font-weight: 500;
+}
+
+input[type="range"] {
+    width: 100%;
+    background: transparent;
+    cursor: pointer;
+}
+
+.date-display {
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.date-text {
+    font-size: 14px;
+    color: #44ff88;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 15px 0;
+}
