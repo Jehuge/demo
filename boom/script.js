@@ -1,15 +1,12 @@
-import * as THREE from 'three';
-import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
-
 // --- Configuration ---
 const VIDEO_WIDTH = 640;
 const VIDEO_HEIGHT = 480;
 const PLANET_RADIUS = 2;
-const EXPLOSION_PARTICLE_COUNT = 4000; // More particles
+const EXPLOSION_PARTICLE_COUNT = 4000;
 const EXPLOSION_SPEED = 0.2;
 
 // --- State ---
-let handLandmarker = undefined;
+let hands = undefined;
 let webcamRunning = false;
 let isExploded = false;
 let targetPosition = new THREE.Vector3(0, 0, 0);
@@ -22,7 +19,7 @@ const loadingScreen = document.getElementById('loading');
 
 // --- Three.js Setup ---
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x000000, 0.02); // Add depth fog
+scene.fog = new THREE.FogExp2(0x000000, 0.02);
 
 // Generate Glow Texture
 function createGlowTexture() {
@@ -42,13 +39,12 @@ function createGlowTexture() {
 }
 const glowTexture = createGlowTexture();
 
-
-// Add some stars/background - Make it grander
+// Add stars/background
 const starGeometry = new THREE.BufferGeometry();
 const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 0.8 });
 const starVertices = [];
 for (let i = 0; i < 5000; i++) {
-    const x = (Math.random() - 0.5) * 200; // Wider spread
+    const x = (Math.random() - 0.5) * 200;
     const y = (Math.random() - 0.5) * 200;
     const z = (Math.random() - 0.5) * 100 - 30;
     starVertices.push(x, y, z);
@@ -57,43 +53,39 @@ starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVerti
 const stars = new THREE.Points(starGeometry, starMaterial);
 scene.add(stars);
 
-
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 12; // Pull back slightly for grander view
+camera.position.z = 12;
 
 const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, alpha: true, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.toneMapping = THREE.ACESFilmicToneMapping; // Better colors
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
-// Lighting - Brighter and more dramatic
-const ambientLight = new THREE.AmbientLight(0x404040, 3); // Brighter ambient
+// Lighting
+const ambientLight = new THREE.AmbientLight(0x404040, 3);
 scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
 directionalLight.position.set(5, 5, 5);
 scene.add(directionalLight);
-// Add a point light near the planet for glow
 const pointLight = new THREE.PointLight(0x3366ff, 5, 50);
 scene.add(pointLight);
-
 
 // --- Planet ---
 const planetGeometry = new THREE.SphereGeometry(PLANET_RADIUS, 64, 64);
 const planetMaterial = new THREE.MeshStandardMaterial({
-    color: 0x2255ff, // Slightly brighter base
-    roughness: 0.4, // Shinier
+    color: 0x2255ff,
+    roughness: 0.4,
     metalness: 0.3,
-    emissive: 0x112244, // Self-illuminated
+    emissive: 0x112244,
     emissiveIntensity: 0.5
 });
-// Add some noise/detail to the planet color (procedural-ish)
+
 const colors = [];
 const count = planetGeometry.attributes.position.count;
-const color1 = new THREE.Color(0x00aaff); // Cyan
-const color2 = new THREE.Color(0x5588ff); // Blue
-const color3 = new THREE.Color(0x001133); // Dark
+const color1 = new THREE.Color(0x00aaff);
+const color2 = new THREE.Color(0x5588ff);
+const color3 = new THREE.Color(0x001133);
 
-// We need to re-generate colors for the new geometry count
 for (let i = 0; i < count; i++) {
     const r = Math.random();
     if (r < 0.3) colors.push(color3.r, color3.g, color3.b);
@@ -111,29 +103,24 @@ const particleGeometry = new THREE.BufferGeometry();
 const particlePositions = new Float32Array(EXPLOSION_PARTICLE_COUNT * 3);
 const particleVelocities = [];
 const particleColors = new Float32Array(EXPLOSION_PARTICLE_COUNT * 3);
-const particleHomeOffsets = []; // Store where each particle belongs on the surface
-const particleSizes = new Float32Array(EXPLOSION_PARTICLE_COUNT); // Varied sizes
+const particleHomeOffsets = [];
+const particleSizes = new Float32Array(EXPLOSION_PARTICLE_COUNT);
 
 for (let i = 0; i < EXPLOSION_PARTICLE_COUNT; i++) {
-    // Generate a random point on the surface of the sphere for "Home"
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos((Math.random() * 2) - 1);
 
-    // Position on surface
     const hx = Math.sin(phi) * Math.cos(theta) * PLANET_RADIUS;
     const hy = Math.sin(phi) * Math.sin(theta) * PLANET_RADIUS;
     const hz = Math.cos(phi) * PLANET_RADIUS;
 
     particleHomeOffsets.push({ x: hx, y: hy, z: hz });
 
-    // Start at center (will be updated)
     particlePositions[i * 3] = 0;
     particlePositions[i * 3 + 1] = 0;
     particlePositions[i * 3 + 2] = 0;
 
-    // Velocity: Outward from center (normal) + random speed
-    // Since home is on surface, direction is just normalized home vector
-    const speed = Math.random() * 0.3 + 0.1; // Faster explosion
+    const speed = Math.random() * 0.3 + 0.1;
 
     particleVelocities.push({
         x: Math.sin(phi) * Math.cos(theta) * speed,
@@ -141,12 +128,11 @@ for (let i = 0; i < EXPLOSION_PARTICLE_COUNT; i++) {
         z: Math.cos(phi) * speed
     });
 
-    // Cool colors (Cyan, Purple, White)
     const c = new THREE.Color();
     const rand = Math.random();
-    if (rand < 0.3) c.setHex(0x00ffff); // Cyan
-    else if (rand < 0.6) c.setHex(0xff00ff); // Purple
-    else c.setHex(0xffffff); // White
+    if (rand < 0.3) c.setHex(0x00ffff);
+    else if (rand < 0.6) c.setHex(0xff00ff);
+    else c.setHex(0xffffff);
 
     particleColors[i * 3] = c.r;
     particleColors[i * 3 + 1] = c.g;
@@ -161,11 +147,11 @@ particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1
 
 const particleMaterial = new THREE.PointsMaterial({
     size: 0.3,
-    map: glowTexture, // Use glow texture
+    map: glowTexture,
     vertexColors: true,
     transparent: true,
     opacity: 0.9,
-    depthWrite: false, // Better blending
+    depthWrite: false,
     blending: THREE.AdditiveBlending
 });
 
@@ -173,82 +159,22 @@ const explosionSystem = new THREE.Points(particleGeometry, particleMaterial);
 explosionSystem.visible = false;
 scene.add(explosionSystem);
 
-
 // --- MediaPipe Initialization ---
-async function createHandLandmarker() {
-    const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9/wasm"
-    );
-    handLandmarker = await HandLandmarker.createFromOptions(vision, {
-        baseOptions: {
-            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`,
-            delegate: "GPU"
-        },
-        runningMode: "VIDEO",
-        numHands: 1
-    });
-    loadingScreen.style.opacity = 0;
-    setTimeout(() => loadingScreen.remove(), 500);
-    enableCam();
-}
+function onResults(results) {
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        const landmarks = results.multiHandLandmarks[0];
 
-function enableCam() {
-    if (!handLandmarker) {
-        console.log("Wait! objectDetector not loaded yet.");
-        return;
-    }
-
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({
-            video: {
-                width: VIDEO_WIDTH,
-                height: VIDEO_HEIGHT
-            }
-        }).then((stream) => {
-            video.srcObject = stream;
-            video.addEventListener("loadeddata", predictWebcam);
-            video.classList.add('active');
-        });
-    }
-}
-
-let lastVideoTime = -1;
-let results = undefined;
-
-async function predictWebcam() {
-    // Resize canvas to match window
-    // (Handled by resize listener, but we need to ensure video is playing)
-
-    if (lastVideoTime !== video.currentTime) {
-        lastVideoTime = video.currentTime;
-        results = handLandmarker.detectForVideo(video, performance.now());
-    }
-
-    if (results.landmarks && results.landmarks.length > 0) {
-        const landmarks = results.landmarks[0];
-
-        // 1. Calculate Hand Position (Centroid of Palm)
-        // Wrist (0), Index MCP (5), Pinky MCP (17)
+        // Calculate Hand Position
         const wrist = landmarks[0];
         const indexMCP = landmarks[5];
         const pinkyMCP = landmarks[17];
 
-        // Simple average for center
         const centerX = (wrist.x + indexMCP.x + pinkyMCP.x) / 3;
         const centerY = (wrist.y + indexMCP.y + pinkyMCP.y) / 3;
 
-        // Map 0..1 to Screen Coordinates (-1..1 for Three.js)
-        // Note: MediaPipe x is 0(left) to 1(right). 
-        // We mirrored the video with CSS, but the coordinates are still raw.
-        // If we want it to feel like a mirror, moving hand right (your right) should move planet right.
-        // Raw MP: right hand on right side of screen -> x ~ 0.
-        // Let's invert X.
-        const ndcX = (1 - centerX) * 2 - 1; // -1 to 1
-        const ndcY = -(centerY * 2 - 1); // -1 to 1 (invert Y because 3D Y is up)
+        const ndcX = (1 - centerX) * 2 - 1;
+        const ndcY = -(centerY * 2 - 1);
 
-        // Map to 3D world space (at z=0)
-        // Simple approximation: multiply by visible width/height at depth 0
-        // Camera is at z=10.
         const dist = camera.position.z;
         const vFOV = THREE.MathUtils.degToRad(camera.fov);
         const visibleHeight = 2 * Math.tan(vFOV / 2) * dist;
@@ -256,10 +182,7 @@ async function predictWebcam() {
 
         targetPosition.set(ndcX * (visibleWidth / 2) * 0.8, ndcY * (visibleHeight / 2) * 0.8, 0);
 
-        // 2. Detect Fist
-        // Check if fingertips are close to palm
-        // Tips: 8, 12, 16, 20. Wrist: 0.
-        // A simple heuristic: average distance of tips to wrist.
+        // Detect Fist
         const tips = [8, 12, 16, 20];
         let totalDist = 0;
         for (let i of tips) {
@@ -269,7 +192,6 @@ async function predictWebcam() {
         }
         const avgDist = totalDist / 4;
 
-        // Thresholds with hysteresis
         const FIST_ENTER_THRESHOLD = 0.2;
         const FIST_EXIT_THRESHOLD = 0.3;
 
@@ -283,12 +205,47 @@ async function predictWebcam() {
             }
         }
     }
-
-    window.requestAnimationFrame(predictWebcam);
 }
 
+function initializeHands() {
+    hands = new Hands({
+        locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }
+    });
 
-// --- Animation Loop ---
+    hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+
+    hands.onResults(onResults);
+
+    loadingScreen.style.opacity = 0;
+    setTimeout(() => loadingScreen.remove(), 500);
+    enableCam();
+}
+
+function enableCam() {
+    if (!hands) {
+        console.log("Wait! Hands not loaded yet.");
+        return;
+    }
+
+    const camera = new Camera(video, {
+        onFrame: async () => {
+            await hands.send({ image: video });
+        },
+        width: VIDEO_WIDTH,
+        height: VIDEO_HEIGHT
+    });
+    camera.start();
+    video.classList.add('active');
+}
+
+// --- Animation Functions ---
 let isReforming = false;
 
 function explode() {
@@ -297,10 +254,6 @@ function explode() {
     explosionSystem.visible = true;
     planet.visible = false;
 
-    // Reset particles to their starting position on the surface (or center? let's do surface for "shell" effect)
-    // Actually, to look like an explosion, they should start where the planet IS.
-    // If we want "reverse of reformation", and reformation ends at surface...
-    // Let's start them at the surface.
     const positions = explosionSystem.geometry.attributes.position.array;
     for (let i = 0; i < EXPLOSION_PARTICLE_COUNT; i++) {
         positions[i * 3] = planet.position.x + particleHomeOffsets[i].x;
@@ -312,23 +265,19 @@ function explode() {
 
 function reform() {
     isReforming = true;
-    // Don't show planet yet
 }
 
 function animate() {
     requestAnimationFrame(animate);
 
-    // Smooth movement
     currentPosition.lerp(targetPosition, 0.1);
 
     if (!isExploded && !isReforming) {
         planet.position.copy(currentPosition);
         planet.rotation.y += 0.005;
         planet.rotation.x += 0.002;
-        // Move light with planet
         pointLight.position.copy(currentPosition);
     } else if (isReforming) {
-        // Reforming animation: Pull particles back to their HOME position on surface
         const positions = explosionSystem.geometry.attributes.position.array;
         let maxDistSq = 0;
 
@@ -337,20 +286,16 @@ function animate() {
             const py = positions[i * 3 + 1];
             const pz = positions[i * 3 + 2];
 
-            // Target is planet center + home offset
             const tx = currentPosition.x + particleHomeOffsets[i].x;
             const ty = currentPosition.y + particleHomeOffsets[i].y;
             const tz = currentPosition.z + particleHomeOffsets[i].z;
 
-            // Vector to target
             const dx = tx - px;
             const dy = ty - py;
             const dz = tz - pz;
 
-            // Move towards target
-            // Use a constant speed or fast lerp to simulate "rewind"
             const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            const speed = 0.4; // Faster reforming
+            const speed = 0.4;
 
             if (dist < speed) {
                 positions[i * 3] = tx;
@@ -366,7 +311,6 @@ function animate() {
         }
         explosionSystem.geometry.attributes.position.needsUpdate = true;
 
-        // If particles are close enough, snap to solid planet
         if (maxDistSq < 0.5) {
             isReforming = false;
             isExploded = false;
@@ -377,14 +321,11 @@ function animate() {
         }
 
     } else {
-        // Exploding animation
         const positions = explosionSystem.geometry.attributes.position.array;
         for (let i = 0; i < EXPLOSION_PARTICLE_COUNT; i++) {
             positions[i * 3] += particleVelocities[i].x;
             positions[i * 3 + 1] += particleVelocities[i].y;
             positions[i * 3 + 2] += particleVelocities[i].z;
-
-            // No gravity
         }
         explosionSystem.geometry.attributes.position.needsUpdate = true;
     }
@@ -400,5 +341,5 @@ window.addEventListener('resize', () => {
 });
 
 // Start
-createHandLandmarker();
+initializeHands();
 animate();
