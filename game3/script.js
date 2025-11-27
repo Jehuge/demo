@@ -55,6 +55,7 @@ function onResults(results) {
 }
 
 const hands = new Hands({
+
     locateFile: (file) => {
         return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
     }
